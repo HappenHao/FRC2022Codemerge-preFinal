@@ -20,6 +20,7 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
+import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.ColorMatch;
@@ -101,8 +102,13 @@ public class ShooterSubsystem extends SubsystemBase {
     m_shooter_left_falcon.setNeutralMode(NeutralMode.Coast);
     m_shooter_right_falcon.setNeutralMode(NeutralMode.Coast);
 
+    m_shooter_left_falcon.configNeutralDeadband(0.001);
+    m_shooter_right_falcon.configNeutralDeadband(0.001);
+    
+		m_shooter_left_falcon.setInverted(TalonFXInvertType.Clockwise);
+    m_shooter_right_falcon.setInverted(TalonFXInvertType.CounterClockwise); 
+
     m_shooter_right_falcon.follow(m_shooter_left_falcon);
-    m_shooter_right_falcon.setInverted(InvertType.InvertMotorOutput);
 
     m_launch.setIdleMode(IdleMode.kBrake);
     m_rotate.setIdleMode(IdleMode.kBrake);
@@ -114,9 +120,9 @@ public class ShooterSubsystem extends SubsystemBase {
     m_colorMatcher.addColorMatch(kRedTarget);
 
     /***** SHOOTER_PID ********************************************/
-    m_shooter_left_falcon.configNeutralDeadband(0.001);
     m_shooter_left_falcon.configSelectedFeedbackSensor(TalonFXFeedbackDevice.IntegratedSensor,
         ShooterConstant.kPIDLoopIdx, ShooterConstant.kTimeoutMs);
+
     m_shooter_left_falcon.config_kF(ShooterConstant.kPIDLoopIdx, ShooterConstant.kGains_Velocit.kF,
         ShooterConstant.kTimeoutMs);
     m_shooter_left_falcon.config_kP(ShooterConstant.kPIDLoopIdx, ShooterConstant.kGains_Velocit.kP,
@@ -125,10 +131,15 @@ public class ShooterSubsystem extends SubsystemBase {
         ShooterConstant.kTimeoutMs);
     m_shooter_left_falcon.config_kD(ShooterConstant.kPIDLoopIdx, ShooterConstant.kGains_Velocit.kD,
         ShooterConstant.kTimeoutMs);
+    
+    /***** AUTO TURN TO ZERO WHEN CAR POWER ON ***********************/
+    m_elevation.set(0.3);
+    m_rotate.set(0.3);    
   }
 
   /******************************************************************
    * periodic
+   * 
    *******************************************************************/
   @Override
   public void periodic() {
@@ -184,25 +195,25 @@ public class ShooterSubsystem extends SubsystemBase {
   /******************************************************************
    * GetColor
    *******************************************************************/
-  public void getcolor() {
-    Color detectedColor = m_colorSensor.getColor();
-    double IR = m_colorSensor.getIR();
-    SmartDashboard.putNumber("Red", detectedColor.red);
-    SmartDashboard.putNumber("Green", detectedColor.green);
-    SmartDashboard.putNumber("Blue", detectedColor.blue);
-    SmartDashboard.putNumber("IR", IR);
+  public String getcolor() {
+      String co = "";
+      Color detectedColor = m_colorSensor.getColor();
+      double R = detectedColor.red;
+      double G = detectedColor.green;
+      double B = detectedColor.blue;
 
-    String colorString;
-    ColorMatchResult match = m_colorMatcher.matchClosestColor(detectedColor);
-    if (match.color == kBlueTarget) {
-      colorString = "Blue";
-    } else if (match.color == kRedTarget) {
-      colorString = "Red";
-    } else {
-      colorString = "Unknown";
+      if ((Math.abs(0.15-R)<0.1)&&(Math.abs(0.4-G)<0.1)&&(Math.abs(0.44-B)<0.1)){
+        co = "blue";
+      }else if ((Math.abs(0.53-R)<0.2)&&(Math.abs(0.34-G)<0.2)&&(Math.abs(0.118-B)<0.2)){
+        co = "red";
+      }else if ((Math.abs(0.25-R)<0.1)&&(Math.abs(0.49-G)<0.1)&&(Math.abs(0.26-B)<0.1)){
+        co = "empty";
+      }else{
+        co = "empty";
+      }
+      return co;
     }
-    SmartDashboard.putString("Detected Color", colorString);
-  }
+  
 
   /******************************************************************
    * PHOTONVISION & SHOOTER ROTATE
@@ -519,23 +530,36 @@ public class ShooterSubsystem extends SubsystemBase {
   public void auto_shoot() {
     double spin_input=0;
     var result = m_camera.getLatestResult();
-
     if (result.hasTargets()) {
-      double error_spin = result.getBestTarget().getYaw();
       double cam_pitch_degree = result.getBestTarget().getPitch();
-
       spin_input = m_SpinPidController.calculate(result.getBestTarget().getYaw(), 0);
       double distance = get_distance_to_Target(cam_pitch_degree);
       double tarpitch = calculate_degree(distance);
-
-   m_elevation.set(m_PitchPidController.calculate(degree_2_encoder(tarpitch), m_elevate_encoder.getPosition()));
-      double vertedcon_velo = calculate_velocity(distance) / ShooterConstant.flywheel_up10ms_mps;
-      launcher_set(vertedcon_velo);
-
+      m_elevation.set(m_PitchPidController.calculate(degree_2_encoder(tarpitch), m_elevate_encoder.getPosition()));
+      launcher_set( calculate_velocity(distance) / ShooterConstant.flywheel_up10ms_mps);
     } 
     else {
       spin_input = -0.2;
     }
+    m_rotate.set(spin_input);
+  }
 
+  /***************************************************
+   * 
+   * 
+   ******************************************************/
+  public Boolean auto_detect(double targetVelocity_UnitsPer100ms){
+    Boolean autoshoot = false;
+    var result = m_camera.getLatestResult();
+    double cam_pitch_degree = result.getBestTarget().getPitch();
+    double distance =get_distance_to_Target(cam_pitch_degree);
+    if(Math.abs(degree_2_encoder( calculate_degree(distance))-m_elevate_encoder.getPosition())<3){
+
+      if(-targetVelocity_UnitsPer100ms >= -m_shooter_left_falcon.getSelectedSensorVelocity()){
+        autoshoot = true;
+      }
+    }
+
+    return autoshoot;
   }
 }

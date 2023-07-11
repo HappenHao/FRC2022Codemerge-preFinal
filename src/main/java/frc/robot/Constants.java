@@ -22,7 +22,9 @@ public final class Constants {
 
         public static final double gearboxratio = 10.71;
         public static final double wheeldiameter = 0.152; // Unit: meter
+
         public static final double Rpm2Mps = (1 / gearboxratio) * wheeldiameter * Math.PI / 60;
+        public static final double a=gearboxratio/(wheeldiameter* Math.PI);
 
         public static final double DriverRun_kp = 0.02;
 

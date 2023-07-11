@@ -93,7 +93,8 @@ public class DriveSubsystem extends SubsystemBase {
    * <p> target_meter_left: TargetPosition of left Motor
    * <p> target_meter_right: TargetPosition of right Motor
    * <p> Example: go_straight(1.2, drive_current_drivestraight);
-   * ? i dont know waht is 21.65 
+   * ? i dont know waht is 21.65 , mabey is Push Car go one meter and see what Enocder.getposition() changed.
+   * <p> that my calculate result is 22.428
    *************************************************/
   public void AutoDrivesRun(double target_meter_left,double target_meter_right) {
     
