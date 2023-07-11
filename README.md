@@ -1,5 +1,7 @@
 # FRC2022CommandBaseCode
 自己编写的使用CommandBase模式控制的5737 FRC2022板版车的程序
+# 2023.7.11 周二 子程序移植
+
 # 2023.7.10 周一 抛物线计算
 
 $ V_x = V*cosθ $
@@ -9,11 +11,6 @@ $ V_y = V*sinθ = gt $
 $ X_2 = V_xt $
 
 $ Y_2 = {1\over2} gt^2 $
-
-$= {1\over2} V_yt = {1\over2} V_y {V_2\over (V_x)} = {X_2\over2} }  $
-
-
-
 
 
 # 2023.7.5 周三 ShuffleBoard学习
