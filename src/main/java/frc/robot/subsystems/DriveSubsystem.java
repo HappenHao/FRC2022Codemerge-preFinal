@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -33,6 +34,8 @@ public class DriveSubsystem extends SubsystemBase {
 
   /***************** GYRO **************************/
   Pigeon2 m_pigeon2 = new Pigeon2(DriverConstant.pigeno_ID, "rio");
+
+  // DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(Units.inchesToMeters(27.0));
 
   /******************************************************************
    * periodic

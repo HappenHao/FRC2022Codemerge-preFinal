@@ -4,13 +4,13 @@ package frc.robot;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.shuffleboard.EventImportance;
+// import edu.wpi.first.wpilibj.shuffleboard.EventImportance;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
+// import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.POVButton;
@@ -27,7 +27,7 @@ public class RobotContainer {
   private final DeliverSubsystem m_deliver = new DeliverSubsystem();
   private final DashaboardSubsystem m_Dashaboard = new DashaboardSubsystem();
 
-  private final Command m_GoStrightCommand = new DoStrightCommand(1.2, 1.2, m_driver);
+//   private final Command m_GoStrightCommand = new DoStrightCommand(1.2, 1.2, m_driver);
   SendableChooser<Command> m_chooser = new SendableChooser<>();
 
 
@@ -35,10 +35,9 @@ public class RobotContainer {
   private Joystick m_Joystick = new Joystick(Contorller.joystickID);
   private XboxController m_Xbox = new XboxController(Contorller.xboxID);
 
-  private final JoystickButton UpButtonY = new JoystickButton(m_Xbox, 4);
-  private final JoystickButton DownButtonA = new JoystickButton(m_Xbox, 1);
-  private final JoystickButton launchButton = new JoystickButton(m_Joystick, 1);
-  private final JoystickButton AimOnButton = new JoystickButton(m_Joystick, 2);
+  private final JoystickButton UpButtonY = new JoystickButton(m_Xbox, Contorller.Xbox_UpButtonY);
+  private final JoystickButton DownButtonA = new JoystickButton(m_Xbox, Contorller.Xbox_DownButtonA);
+  private final JoystickButton launchButton = new JoystickButton(m_Joystick, Contorller.Joy_launchButton);
 
   private POVButton m_rotate_colock_button = new POVButton(m_Xbox, 90);
   private POVButton m_rotate_uncolock_button = new POVButton(m_Xbox, 270);
@@ -64,47 +63,19 @@ public class RobotContainer {
         () -> m_Xbox.getRightTriggerAxis()));
     m_shooter.setDefaultCommand(new ShooterCommand(m_shooter,
         () -> m_Joystick.getRawAxis(3),
-        () -> m_Joystick.getRawButtonPressed(Contorller.JoystickVersionButtin)));
+        () -> m_Joystick.getRawButtonPressed(Contorller.Joy_VersionButton)));
 
     SmartDashboard.putNumber("Xbox_Axis_L2", m_Xbox.getRightTriggerAxis());
     SmartDashboard.putNumber("Joystick_Axis_Trigle", m_Joystick.getRawAxis(3));
 
-    m_chooser.setDefaultOption("Simple Auto", m_GoStrightCommand);
-    // m_chooser.addOption("Complex Auto", m_complexAuto);
-    Shuffleboard.getTab("Autonomous").add(m_chooser);
-     // Log Shuffleboard events for command initialize, execute, finish, interrupt
-     CommandScheduler.getInstance()
-     .onCommandInitialize(
-         command ->
-             Shuffleboard.addEventMarker(
-                 "Command initialized", command.getName(), EventImportance.kNormal));
- CommandScheduler.getInstance()
-     .onCommandExecute(
-         command ->
-             Shuffleboard.addEventMarker(
-                 "Command executed", command.getName(), EventImportance.kNormal));
- CommandScheduler.getInstance()
-     .onCommandFinish(
-         command ->
-             Shuffleboard.addEventMarker(
-                 "Command finished", command.getName(), EventImportance.kNormal));
- CommandScheduler.getInstance()
-     .onCommandInterrupt(
-         command ->
-             Shuffleboard.addEventMarker(
-                 "Command interrupted", command.getName(), EventImportance.kNormal));
   }
 
   private void configureButtonBindings() {
-    // new NetworkButton(shooterEnable).whenPressed (new InstantCommand(m_shooter::enable));
 
     UpButtonY   .whenPressed(new InstantCommand(m_intake::InakeUp, m_intake));
     DownButtonA .whenPressed(new InstantCommand(m_intake::intakeDown, m_intake));
     launchButton.whenPressed(new InstantCommand(m_shooter::launch, m_shooter) )
                 .whenReleased(new InstantCommand(m_shooter::stopLaunch,m_shooter));
-    // AimOnButton.whenPressed(new InstantCommand(m_shooter::auto_shoot,m_shooter));
-    // new JoystickButton(m_Joystick,1).whenPressed(new InstantCommand(m_shooter::launch, m_shooter) )
-    //                                 .whenReleased(new InstantCommand(m_shooter::stopLaunch));
 
     m_rotate_colock_button    .whileHeld(new InstantCommand(m_shooter::rotate_clock, m_shooter))
                               .whenReleased(new InstantCommand(m_shooter::rotate_stop, m_shooter));

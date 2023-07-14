@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
@@ -42,9 +43,9 @@ public class ShooterSubsystem extends SubsystemBase {
   public WPI_TalonFX m_shooter_left_falcon = new WPI_TalonFX(ShooterConstant.left_shooter);
   public WPI_TalonFX m_shooter_right_falcon = new WPI_TalonFX(ShooterConstant.right_shooter);
 
-  public CANSparkMax m_launch = new CANSparkMax(ShooterConstant.launch, MotorType.kBrushless);
-  public CANSparkMax m_rotate = new CANSparkMax(ShooterConstant.rotate, MotorType.kBrushless);
-  public CANSparkMax m_elevation = new CANSparkMax(ShooterConstant.elevation, MotorType.kBrushless);
+  public CANSparkMax m_launch_motor = new CANSparkMax(ShooterConstant.launch, MotorType.kBrushless);
+  public CANSparkMax m_rotate_motor = new CANSparkMax(ShooterConstant.rotate, MotorType.kBrushless);
+  public CANSparkMax m_elevation_motor = new CANSparkMax(ShooterConstant.elevation, MotorType.kBrushless);
 
   /** LIMIT SWITCH ***********************/
   DigitalInput m_switch_elevation = new DigitalInput(SensorConstant.pitch_digital);
@@ -52,8 +53,8 @@ public class ShooterSubsystem extends SubsystemBase {
   DigitalInput m_switch_tunnel = new DigitalInput(SensorConstant.shootExit_digital);
 
   /*** Encoder ***************************/
-  RelativeEncoder m_rotate_encoder = m_rotate.getEncoder();
-  RelativeEncoder m_elevate_encoder = m_elevation.getEncoder();
+  RelativeEncoder m_rotate_encoder = m_rotate_motor.getEncoder();
+  RelativeEncoder m_elevate_encoder = m_elevation_motor.getEncoder();
 
   /**** COLOR SENSOR **********************/
   private final I2C.Port i2cPort = I2C.Port.kOnboard;
@@ -89,7 +90,7 @@ public class ShooterSubsystem extends SubsystemBase {
   PIDController m_PitchPidController = new PIDController(ShooterConstant.kGains_Pitch.kP,
       ShooterConstant.kGains_Pitch.kI, ShooterConstant.kGains_Pitch.kD);
 
-  DriveSubsystem m_driver = new DriveSubsystem();
+  // DriveSubsystem m_driver = new DriveSubsystem();
 
   /******************************************************************
    * ShooterSubsystem
@@ -110,9 +111,10 @@ public class ShooterSubsystem extends SubsystemBase {
 
     m_shooter_right_falcon.follow(m_shooter_left_falcon);
 
-    m_launch.setIdleMode(IdleMode.kBrake);
-    m_rotate.setIdleMode(IdleMode.kBrake);
-    m_elevation.setIdleMode(IdleMode.kBrake);
+    m_launch_motor.setIdleMode(IdleMode.kBrake);
+    m_rotate_motor.setIdleMode(IdleMode.kBrake);
+    m_elevation_motor.setIdleMode(IdleMode.kBrake);
+
     m_rotate_encoder.setPosition(ShooterConstant.rotate_init_angle);
     m_elevate_encoder.setPosition(ShooterConstant.elevation_init_angle);
 
@@ -133,8 +135,8 @@ public class ShooterSubsystem extends SubsystemBase {
         ShooterConstant.kTimeoutMs);
 
     /***** AUTO TURN TO ZERO WHEN CAR POWER ON ***********************/
-    m_elevation.set(0.3);
-    m_rotate.set(0.3);
+    m_elevation_motor.set(0.3);
+    m_rotate_motor.set(0.3);
   }
 
   /******************************************************************
@@ -173,10 +175,10 @@ public class ShooterSubsystem extends SubsystemBase {
     }
     if (m_rotate_encoder.getPosition() > ShooterConstant.rotate_left_limit
         | m_rotate_encoder.getPosition() < ShooterConstant.rotate_right_limit) {
-      m_rotate.stopMotor();
+      m_rotate_motor.stopMotor();
     }
     if (m_elevate_encoder.getPosition() > ShooterConstant.elevation_limit | m_elevate_encoder.getPosition() < 0) {
-      m_elevation.stopMotor();
+      m_elevation_motor.stopMotor();
     }
   }
 
@@ -247,46 +249,45 @@ public class ShooterSubsystem extends SubsystemBase {
     return color_spin;
   }
 
-
   /******************************************************************
    * ROTATE
    *******************************************************************/
   public void rotate_clock() {
-    m_rotate.set(0.3);
+    m_rotate_motor.set(0.3);
   }
 
   public void rotate_unclock() {
-    m_rotate.set(-0.3);
+    m_rotate_motor.set(-0.3);
   }
 
   public void rotate_stop() {
-    m_rotate.stopMotor();
+    m_rotate_motor.stopMotor();
   }
 
   /******************************************************************
    * ELEVATION
    *******************************************************************/
   public void elevation_clock() {
-    m_elevation.set(0.2);
+    m_elevation_motor.set(0.2);
   }
 
   public void elevation_unclock() {
-    m_elevation.set(-0.2);
+    m_elevation_motor.set(-0.2);
   }
 
   public void elevation_stop() {
-    m_elevation.stopMotor();
+    m_elevation_motor.stopMotor();
   }
 
   /******************************************************************
    * LAUNCH
    *******************************************************************/
   public void launch() {
-    m_launch.set(-1);
+    m_launch_motor.set(-1);
   }
 
   public void stopLaunch() {
-    m_launch.stopMotor();
+    m_launch_motor.stopMotor();
   }
 
   /******************************************************************
@@ -376,255 +377,117 @@ public class ShooterSubsystem extends SubsystemBase {
   /***************************************************
    * Return the distance between car and target Pipelines
    * <p>
-   * degree: result.getBestTarget().getPitch();
+   * Camera_getPitch: result.getBestTarget().getPitch();
+   * <p>
+   * return distance: Meters
    ******************************************************/
-  public double get_distance_to_Target(double degree) {
+  private double get_distance_to_Target(double Camera_getPitch) {
     double dis_error = 0.45; // the error of return and reality
     double distance = PhotonUtils.calculateDistanceToTargetMeters(PhotonVisionConstant.Camera_height,
         PhotonVisionConstant.Target_height,
         PhotonVisionConstant.Camera_pitch,
-        degree * Math.PI / 180)
+        Camera_getPitch * Math.PI / 180)
         + dis_error;
     SmartDashboard.putNumber("TargetDistance", distance);
     return distance;
   }
 
   /***************************************************
-   * calculate the degree of Shooter Pitch according to parabola
-   * Input: distance between car and target Pipelines
+   * Return the Angle and Speed with parabola calculate,you can get the process on
+   * README.MD
    * <p>
-   * Example:
-   * distance =get_distance_to_Target(cam_pitch_degree);
-   * tarpitch = calculate_degree(distance);
-   * if (tarpitch<45){
-   * motor_pitch.set(0);
-   * }else if(tarpitch>80){
-   * motor_pitch.set(0);
-   * }else{/
-   * motor_pitch.set(setang(0.01, 0.000015,
-   * 0,degtoenc(tarpitch)-encoder_pitch.getPosition()));
-   * }
+   * distance_to_Target : Meter
+   * <p>
+   * result[0] = angle : degree
+   * <p>
+   * result[1] = velocity : Meter per seconds
    ******************************************************/
-  private double calculate_degree(double distance) {
-    double x1 = distance;
+  private static double[] calculate_parabola(double distance_to_Target) {
+    double[] result = new double[2];
+
+    double x1 = distance_to_Target;
     double y1 = PhotonVisionConstant.Camera_height - PhotonVisionConstant.Target_height;
-    double x2 = distance - 0.2; // the 0.2 is the distance between Target and parabola top
-    double y2 = y1 + 0.1; // the 0.1 is the distance between Target and parabola top
-
-    double parabola_a = ((y1 * x2 / x1) - y2) / ((x1 * x2) - (x2 * x2));
-    double parabola_b = (y1 - (x1 * x1 * parabola_a)) / x1;
-
-    double vertex_x = -parabola_b / (2 * parabola_a);
-    double vertex_y = (-parabola_b * parabola_b) / (4 * parabola_a);
-    double ang = (Math.atan((2 * vertex_y) / vertex_x)) * 180 / 3.14;
-    return ang;
-  }
-
-  /***************************************************
-   * calculate velocity of shooter
-   ******************************************************/
-  private double calculate_velocity(double distance) {
-    double ang = 0;
-    double x1 = distance;
-    double y1 = PhotonVisionConstant.Camera_height - PhotonVisionConstant.Target_height;
-    double x2 = distance - 0.2;
+    double x2 = distance_to_Target - 0.2;
     double y2 = y1 + 0.1;
+
     double parabola_a = ((y1 * x2 / x1) - y2) / ((x1 * x2) - (x2 * x2));
     double parabola_b = (y1 - (x1 * x1 * parabola_a)) / x1;
 
     double vertex_x = -parabola_b / (2 * parabola_a);
     double vertex_y = (-parabola_b * parabola_b) / (4 * parabola_a);
-    ang = (Math.atan((2 * vertex_y) / vertex_x)) * 180 / 3.14;
+
+    double angle = (Math.atan((2 * vertex_y) / vertex_x)) * 180 / Math.PI;
 
     double x = (vertex_x) * 2;
     double fenzi = x * x * 9.8;
-    double fenmu = Math.sin(3.14 / 180 * 2 * ang) * Math.cos(3.14 / 180 * ang);
+    double fenmu = Math.sin(3.14 / 180 * 2 * angle) * Math.cos(3.14 / 180 * angle);
 
     double velocity = Math.pow((fenzi / fenmu), (1.0 / 3.0)) * 3 - 0.15;
-    return velocity;
+
+    result[0] = angle;
+    result[1] = velocity;
+    return result;
   }
 
   /***************************************************
-   * calculate velocity of (run & shoot)
    * <p>
-   * Example:
+   * targetVelocity : UnitsPer100ms
    * <p>
-   * cam_pitch_degree = result.getBestTarget().getPitch();
-   * <p>
-   * distance = get_distance(cam_pitch_degree);
-   * 
-   * <p>
-   * double vertedcon_velo = calculate_velocity_move(
-   * calculate_velocity(distance),
-   * calculate_degree(distance),
-   * -get_y_speed( spin_encoder_2_deg(encoder_spin.getPosition())
-   * ,get_drive_speed())
-   * ) *100/Math.PI/10.16/1.5/10*2048;
+   * return setvelocity : UnitsPer100ms
    ******************************************************/
-  private double calculate_velocity_move(double velocity_static, double angle_static, double yc_speed) {
-    double yball_speed = (Math.cos(angle_static * Math.PI / 180) * velocity_static) + yc_speed;
-    double velocity = yball_speed / Math.cos(angle_static * Math.PI / 180);
-    return velocity;
-  }
-
-  /***************************************************
-   * spin_correction(
-   * get_distance(cam_pitch_degree),
-   * get_x_speed(spinenctodeg(encoder_spin.getPosition()),
-   * m_driver.get_drive_speed()),
-   * calculate_velocity_move(calculate_velocity(distance),tarpitch,-get_y_speed(spinenctodeg(encoder_spin.getPosition()),
-   * m_driver.get_drive_speed()))
-   * )
-   ******************************************************/
-  private double spin_correction(double distance_m, double xspeed, double new_velo) {
-    double x1 = distance_m;
-    double y1 = PhotonVisionConstant.Camera_height - PhotonVisionConstant.Target_height;
-    double x2 = distance_m - 0.2;
-    double y2 = y1 + 0.1;
-
-    double parabola_a = ((y1 * x2 / x1) - y2) / ((x1 * x2) - (x2 * x2));
-    double parabola_b = (y1 - (x1 * x1 * parabola_a)) / x1;
-    double vertex_x = -parabola_b / (2 * parabola_a);
-    double vertex_y = (-parabola_b * parabola_b) / (4 * parabola_a);
-    double ang = (Math.atan((2 * vertex_y) / vertex_x)) * 180 / 3.14;
-
-    double x = (vertex_x) * 2;
-    double time = x / (new_velo * Math.cos(ang * Math.PI / 180));
-    double cdis = time * xspeed;
-    double sc = Math.atan(cdis / distance_m) * 180 / Math.PI;
-    return sc;
-  }
-
-  /***************************************************
-   * talon.set(TalonFXControlMode.Velocity,
-   * -falcon500_delay(-targetVelocity_UnitsPer100ms,
-   * -_talon.getSelectedSensorVelocity()))
-   ******************************************************/
-  private double falcon500_delay(double targetvelocity, double actualvelocity) {
+  private double falcon500_delay(double targetvelocity) {
+    double actualvelocity = m_shooter_left_falcon.getSelectedSensorVelocity();
     double setvelocity = 0;
-    if ((targetvelocity - actualvelocity) >= 1000) {
+    if ((targetvelocity - actualvelocity) >= 1000)
       setvelocity += 75;
-    } else if ((targetvelocity - actualvelocity) <= -1000) {
+    else if ((targetvelocity - actualvelocity) <= -1000)
       setvelocity -= 75;
-    } else if (targetvelocity == 0) { // if targetvelocity is 0 & speed<600 ,keep the speed
-      if (Math.abs(0 - actualvelocity) < 600) {
+    else if (targetvelocity == 0) {
+      // if targetvelocity is 0 & speed<600 ,keep the speed
+      if (Math.abs(actualvelocity) < 600)
         setvelocity = actualvelocity;
-      } else {
+      else
         setvelocity = 0; // ? why the actualvelocity>600 and targetvelocity=0,setvelocity=0
-      }
-    } else {
+    } else
       setvelocity = targetvelocity;
-    }
     SmartDashboard.putNumber("TargetShooterSpeed", setvelocity);
     return setvelocity;
   }
 
   /***************************************************
-   * double vertedcon_velo =
-   * cal_velo(distance)/ShooterConstant.flywheel_up10ms_mps;
-   * launcher_set(vertedcon_velo);
-   ******************************************************/
-  private void launcher_set(double setvelocity) {
-    // double motorOutput = m_shooter_left_falcon.getMotorOutputPercent();
-    double targetVelocity_UnitsPer100ms = -setvelocity;
-    if (setvelocity == 0) {
-      m_shooter_left_falcon.set(ControlMode.Velocity,
-          -falcon500_delay(0, -m_shooter_left_falcon.getSelectedSensorVelocity()));
-    } else {
-      m_shooter_left_falcon.set(ControlMode.Velocity,
-          -falcon500_delay(-targetVelocity_UnitsPer100ms, -m_shooter_left_falcon.getSelectedSensorVelocity()));
-    }
-  }
-
-  /***************************************************
    * 
    * 
    ******************************************************/
-  public void auto_shoot() {
-    double spin_input = 0;
+  public Boolean auto_shoot() {
+    double spin_output = 0;
     var result = m_camera.getLatestResult();
     if (result.hasTargets()) {
-      double cam_pitch_degree = result.getBestTarget().getPitch();
-      spin_input = m_SpinPidController.calculate(result.getBestTarget().getYaw(), 0);
 
-      double distance = get_distance_to_Target(cam_pitch_degree);
-      double tarpitch = calculate_degree(distance);
-      m_elevation.set(m_PitchPidController.calculate(degree_2_encoder(tarpitch), m_elevate_encoder.getPosition()));
-     
-      launcher_set(calculate_velocity(distance) / ShooterConstant.flywheel_up10ms_mps);
-    } else {
-      spin_input = -0.2;
+      spin_output = m_SpinPidController.calculate(result.getBestTarget().getYaw(), 0);
+
+      double distance = get_distance_to_Target(result.getBestTarget().getPitch());
+      double target_pitchAngle = calculate_parabola(distance)[0];
+
+      m_elevation_motor.set(m_PitchPidController.calculate(degree_2_encoder(target_pitchAngle), m_elevate_encoder.getPosition()));
+      double target_Velocity = calculate_parabola(distance)[1] / ShooterConstant.flywheel_up10ms_mps;
+      falcon500_delay(target_Velocity);
+
+      if (Math.abs(degree_2_encoder(target_pitchAngle) - m_elevate_encoder.getPosition()) < 3) {
+        // if Pitch is ready
+        if (target_Velocity < Math.abs(m_shooter_left_falcon.getSelectedSensorVelocity())) {
+          // if Speed is ready
+          return true;
+        } else
+          return false;
+      } else
+        return false;
+
+    } 
+    else {
+      spin_output = -0.2;
+      return false;
     }
-    m_rotate.set(spin_input);
+    m_rotate_motor.set(spin_output);
   }
-
-  /***************************************************
-   * 
-   * 
-   ******************************************************/
-  public Boolean auto_detect(double targetVelocity_UnitsPer100ms) {
-    Boolean autoshoot = false;
-    var result = m_camera.getLatestResult();
-    double cam_pitch_degree = result.getBestTarget().getPitch();
-    double distance = get_distance_to_Target(cam_pitch_degree);
-    if (Math.abs(degree_2_encoder(calculate_degree(distance)) - m_elevate_encoder.getPosition()) < 3) {
-
-      if (-targetVelocity_UnitsPer100ms >= -m_shooter_left_falcon.getSelectedSensorVelocity()) {
-        autoshoot = true;
-      }
-    }
-
-    return autoshoot;
-  }
-/************************************************************************** 
-  public void AUTOSHOOT() {
-
-    var result = m_camera.getLatestResult();
-    double cam_pitch_degree = 0;
-    String team;
-
-    if (result.hasTargets()) {
-      double error_spin_get = result.getBestTarget().getYaw();
-      cam_pitch_degree = result.getBestTarget().getPitch();
-    }
-
-    double distance = get_distance_to_Target(cam_pitch_degree);
-    double tarpitch = calculate_degree(distance);
-
-    if (Math.abs(spin_correction(distance,
-        get_x_speed(spin_encoder_2_deg(m_rotate_encoder.getPosition()), m_driver.get_drive_speed()),
-        calculate_velocity_move(calculate_velocity(distance), tarpitch,
-            -get_y_speed(spin_encoder_2_deg(m_rotate_encoder.getPosition()), m_driver.get_drive_speed())))
-        + color_select(team, ball_1)) < 30) {
-     double  error_spin = error_spin_get
-          + -spin_correction(distance,
-              get_x_speed(spinenctodeg(encoder_spin.getPosition()), m_driver.get_drive_speed()),
-              cal_velo_move(cal_velo(distance), tarpitch,
-                  -get_y_speed(spinenctodeg(encoder_spin.getPosition()), m_driver.get_drive_speed())))
-          + color_select(team, ball_1);
-    } else {
-      error_spin = error_spin_get + color_select(team, ball_1);
-    }
-
-    // motor_spin.set(spin_check(spin_input, encoder_spin.getPosition()));
-
-    Integral_spin = (Integral_spin + error_spin);
-
-    spin_input = (error_spin * kp_spin) + (ki_spin * Integral);
-    SmartDashboard.putNumber("apenc", spin_check(spin_input, encoder_spin.getPosition()));
-
-    distance = get_distance_to_Target(cam_pitch_degree);
-
-    tarpitch = cal_degree(distance, target_height_m, camera_height_m);
-
-      m_elevation.set(setang(0.01, 0.000015, 0, degree_2_encoder(tarpitch) - m_elevate_encoder.getPosition()));
-
-    double vertedcon_velo = calculate_velocity_move(calculate_velocity(distance), tarpitch,
-        -get_y_speed(spin_encoder_2_deg(m_rotate_encoder.getPosition()), m_driver.get_drive_speed())) * 100 / Math.PI / 10.16 / 1.5 / 10
-        * 2048;
-    launcher_set(vertedcon_velo);
-
-  }
-  //*************************************************************************************************************/
 
 }

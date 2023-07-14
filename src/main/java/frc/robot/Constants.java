@@ -7,7 +7,13 @@ public final class Constants {
     public static final class Contorller {
         public static final int joystickID = 1;
         public static final int xboxID = 0;
-        public static final int JoystickVersionButtin = 2;
+
+        public static final int Joy_VersionButton = 2;
+        public static final int Joy_launchButton=1;
+        public static final int Xbox_UpButtonY=4;
+        public static final int Xbox_DownButtonA=1;
+
+
 
     }
 
@@ -45,8 +51,8 @@ public final class Constants {
         public static final int elevation = 16;
         public static final int launch = 14;
 
-        public static final int rotate_left_limit = 30;
-        public static final int rotate_right_limit = -40;
+        public static final int rotate_left_limit = 0;//30
+        public static final int rotate_right_limit = -110;//-40
         public static final int elevation_limit = 45;
 
         public static final int rotate_init_angle = -99;
@@ -63,7 +69,7 @@ public final class Constants {
         public static final double flywheel_ratio = 36 / 24;
         public static final double flywheel_diameter = 0.1016;// meter 36T/24T=1.5 4in=101.6mm=0.1016m
         public static final double flywheel_girth = flywheel_diameter * Math.PI;
-        public static final double flywheel_up10ms_mps = 2048 * flywheel_ratio * flywheel_girth;
+        public static final double flywheel_up10ms_mps = 2048 * flywheel_ratio * flywheel_girth;    //unit per 10 ms To meter per seconds
 
         public static final int kSlotIdx = 0;
         public static final int kPIDLoopIdx = 0;

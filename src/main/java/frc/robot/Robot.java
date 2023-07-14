@@ -35,12 +35,13 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     m_robotContainer = new RobotContainer();
 
-    /********************* ADDRESS ABLE LED************************** */
+    /********************* ADDRESS ABLE LED************************** *
     m_led.setLength(m_ledBuffer.getLength());
     m_led.setData(m_ledBuffer);
     m_led.start();
     rainbow();
     m_led.setData(m_ledBuffer);
+    */
   }
 
   @Override
