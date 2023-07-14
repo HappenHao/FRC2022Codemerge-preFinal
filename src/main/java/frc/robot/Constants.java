@@ -1,7 +1,6 @@
 
 package frc.robot;
 
-
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 
 public final class Constants {
@@ -23,7 +22,12 @@ public final class Constants {
         public static final double wheeldiameter = 0.152; // Unit: meter
 
         public static final double Rpm2Mps = (1 / gearboxratio) * wheeldiameter * Math.PI / 60;
-        public static final double a=gearboxratio/(wheeldiameter* Math.PI);
+        public static final double Meter2Encoder = gearboxratio / (wheeldiameter * Math.PI);
+
+        // public static final int kEncoderCPR = 1024;
+        // public static final double kWheelDiameterInches = 6;
+        // public static final double kEncoderDistancePerPulse =
+        //         (kWheelDiameterInches * Math.PI) / (double) kEncoderCPR;
 
         public static final double DriverRun_kp = 0.02;
 
@@ -48,28 +52,28 @@ public final class Constants {
         public static final int rotate_init_angle = -99;
         public static final int elevation_init_angle = 50;
 
-        public static final double rotation_ratio   = 20*296/29;     // 296/29 = 10.2069
-        //20 is the radio of Planetary gearbox
-        //the gear on out_Hex gear is 29T
-        //the gear on ratation is 296T
-        public static final double elevation_ratio= 20 * 19.33;     // 464/23 = 20.17
-        //20 is the radio of Planetary gearbox
-        //the gear on HEX is 23T
-        //the gear on elevation is about 464T
-        public static final double flywheel_ratio =36/24; 
-        public static final double flywheel_diameter=0.1016 ;//meter  36T/24T=1.5  4in=101.6mm=0.1016m 
-        public static final double flywheel_girth = flywheel_diameter*Math.PI;
-        public static final double flywheel_up10ms_mps = 2048 *flywheel_ratio*flywheel_girth;
+        public static final double rotation_ratio = 20 * 296 / 29; // 296/29 = 10.2069
+        // 20 is the radio of Planetary gearbox
+        // the gear on out_Hex gear is 29T
+        // the gear on ratation is 296T
+        public static final double elevation_ratio = 20 * 19.33; // 464/23 = 20.17
+        // 20 is the radio of Planetary gearbox
+        // the gear on HEX is 23T
+        // the gear on elevation is about 464T
+        public static final double flywheel_ratio = 36 / 24;
+        public static final double flywheel_diameter = 0.1016;// meter 36T/24T=1.5 4in=101.6mm=0.1016m
+        public static final double flywheel_girth = flywheel_diameter * Math.PI;
+        public static final double flywheel_up10ms_mps = 2048 * flywheel_ratio * flywheel_girth;
 
         public static final int kSlotIdx = 0;
         public static final int kPIDLoopIdx = 0;
         public static final int kTimeoutMs = 30;
-        public final static Gains kGains_Velocit  = new Gains( 0.1, 0.00001 , 0, 1023.0/20660.0,  300,  1.00);
+        public final static Gains kGains_Velocit = new Gains(0.1, 0.00001, 0, 1023.0 / 20660.0, 300, 1.00);
 
-        //* motor_pitch.set(setang(0.01, 0.000015, 0,degtoenc(tarpitch)-encoder_pitch.getPosition())); 
+        // * motor_pitch.set(setang(0.01, 0.000015,
+        // 0,degtoenc(tarpitch)-encoder_pitch.getPosition()));
         public final static Gains kGains_Pitch = new Gains(0.01, 0.000015, 0, 0, 0, 0);
-        public final static Gains kGains_Spin = new Gains(0.02, 0.000, 0, 0, 0, 0);   //kp=0.017
-
+        public final static Gains kGains_Spin = new Gains(0.02, 0.000, 0, 0, 0, 0); // kp=0.017
 
     }
 
@@ -104,8 +108,8 @@ public final class Constants {
         public static final int pitch_digital = 1;
         public static final int shootExit_digital = 0;
         public static final int colorSensor_IIC = 0x52;
-        public static final int Addressable_LED=0;
-        public static final int Addressable_LED_Number=100;
+        public static final int Addressable_LED = 0;
+        public static final int Addressable_LED_Number = 100;
     }
 
     public static final class PhotonVisionConstant {
@@ -121,10 +125,9 @@ public final class Constants {
         int camResolutionHeight = 480; // pixels
         double minTargetArea = 10; // square pixels
 
-
-        public static final double Camera_height = 0.685;                   //meter of Camera Height
-        public static final double Target_height = 2.67;                    //meter of Target
-        public static final double Camera_pitch = 29 * Math.PI / 180;     //Cam pitch Angle(degree)
+        public static final double Camera_height = 0.685; // meter of Camera Height
+        public static final double Target_height = 2.67; // meter of Target
+        public static final double Camera_pitch = 29 * Math.PI / 180; // Cam pitch Angle(degree)
         public static final double dis_error = 0.45;
 
         public final static Gains kGains_rotateVersion = new Gains(0.1, 0, 0, 0, 0, 1.00);
