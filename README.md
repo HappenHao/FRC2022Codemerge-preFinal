@@ -1,7 +1,27 @@
 # FRC2022CommandBaseCode
 自己编写的使用CommandBase模式控制的5737 FRC2022板版车的程序
-# 2023.7.11 周二 子程序移植
 
+# 2023.7.13 周四 抛物线计算
+![抛物线计算](./Image/抛物线计算.png)
+
+![角度](./Image/角度计算.png)
+
+```java
+ public double calculate_degree(double distance) {
+    double x1 = distance;
+    double y1 = PhotonVisionConstant.Camera_height - PhotonVisionConstant.Target_height;
+    double x2 = distance - 0.2; // the 0.2 is the distance between Target and parabola top
+    double y2 = y1 + 0.1; // the 0.1 is the distance between Target and parabola top
+
+    double parabola_a = ((y1 * x2 / x1) - y2) / ((x1 * x2) - (x2 * x2));
+    double parabola_b = (y1 - (x1 * x1 * parabola_a)) / x1;
+
+    double vertex_x = -parabola_b / (2 * parabola_a);
+    double vertex_y = (-parabola_b * parabola_b) / (4 * parabola_a);
+    double ang = (Math.atan((2 * vertex_y) / vertex_x)) * 180 / 3.14;
+    return ang;
+  }
+```
 # 2023.7.10 周一 抛物线计算
 
 $ V_x = V*cosθ $

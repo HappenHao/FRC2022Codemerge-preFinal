@@ -4,17 +4,14 @@ package frc.robot;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.shuffleboard.BuiltInLayouts;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardLayout;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-import edu.wpi.first.wpilibj2.command.button.NetworkButton;
 import edu.wpi.first.wpilibj2.command.button.POVButton;
-import frc.robot.Constants.Contorller;
+import frc.robot.Constants.*;
 import frc.robot.commands.*;
 import frc.robot.subsystems.*;
 
@@ -24,7 +21,6 @@ public class RobotContainer {
   final DriveSubsystem m_drive = new DriveSubsystem();//
   private final ShooterSubsystem m_shooter = new ShooterSubsystem(); //
   private final IntakeSubsystem m_intake = new IntakeSubsystem();
-  private final PneumaticSubsystem m_pneumatic = new PneumaticSubsystem(); //
   private final DeliverSubsystem m_deliver = new DeliverSubsystem();
   private final DashaboardSubsystem m_Dashaboard = new DashaboardSubsystem();
 
@@ -41,8 +37,10 @@ public class RobotContainer {
   private POVButton m_elevation_clock_button = new POVButton(m_Xbox, 0);
   private POVButton m_elevation_unclock_button = new POVButton(m_Xbox, 180);
 
+  /*********************SHUFFLEBOARD************************** */
   ShuffleboardTab ShooterTab = Shuffleboard.getTab("ShooterTab");     //selectTab("ShooterTab")
   NetworkTableEntry shooterEnable = ShooterTab.add("Shooter Enable", false).getEntry();
+  
   
 
   /***************************************************************************************/
@@ -67,8 +65,8 @@ public class RobotContainer {
   private void configureButtonBindings() {
     // new NetworkButton(shooterEnable).whenPressed (new InstantCommand(m_shooter::enable));
 
-    UpButtonY   .whenPressed(new InstantCommand(m_pneumatic::InakeUp, m_pneumatic));
-    DownButtonA .whenPressed(new InstantCommand(m_pneumatic::intakeDown, m_pneumatic));
+    UpButtonY   .whenPressed(new InstantCommand(m_intake::InakeUp, m_intake));
+    DownButtonA .whenPressed(new InstantCommand(m_intake::intakeDown, m_intake));
     launchButton.whenPressed(new InstantCommand(m_shooter::launch, m_shooter) )
                 .whenReleased(new InstantCommand(m_shooter::stopLaunch));
     // new JoystickButton(m_Joystick,1).whenPressed(new InstantCommand(m_shooter::launch, m_shooter) )

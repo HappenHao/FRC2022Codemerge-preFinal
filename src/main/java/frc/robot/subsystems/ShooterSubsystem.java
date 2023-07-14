@@ -104,9 +104,9 @@ public class ShooterSubsystem extends SubsystemBase {
 
     m_shooter_left_falcon.configNeutralDeadband(0.001);
     m_shooter_right_falcon.configNeutralDeadband(0.001);
-    
-		m_shooter_left_falcon.setInverted(TalonFXInvertType.Clockwise);
-    m_shooter_right_falcon.setInverted(TalonFXInvertType.CounterClockwise); 
+
+    m_shooter_left_falcon.setInverted(TalonFXInvertType.Clockwise);
+    m_shooter_right_falcon.setInverted(TalonFXInvertType.CounterClockwise);
 
     m_shooter_right_falcon.follow(m_shooter_left_falcon);
 
@@ -131,10 +131,10 @@ public class ShooterSubsystem extends SubsystemBase {
         ShooterConstant.kTimeoutMs);
     m_shooter_left_falcon.config_kD(ShooterConstant.kPIDLoopIdx, ShooterConstant.kGains_Velocit.kD,
         ShooterConstant.kTimeoutMs);
-    
+
     /***** AUTO TURN TO ZERO WHEN CAR POWER ON ***********************/
     m_elevation.set(0.3);
-    m_rotate.set(0.3);    
+    m_rotate.set(0.3);
   }
 
   /******************************************************************
@@ -157,7 +157,8 @@ public class ShooterSubsystem extends SubsystemBase {
         m_shooter_left_falcon.getSelectedSensorVelocity() * ShooterConstant.flywheel_up10ms_mps);
 
     resteEncoder();
-    getcolor();
+    // getcolor();
+    Ball_Stack();
   }
 
   /******************************************************************
@@ -180,6 +181,60 @@ public class ShooterSubsystem extends SubsystemBase {
   }
 
   /******************************************************************
+   * judged team is blue or red
+   *******************************************************************/
+  public String IsBlue(double setteam) {
+    String team = "null";
+    if (setteam < 0) {
+      team = "blue";
+      SmartDashboard.putBoolean("teamset", true);
+    } else {
+      team = "red";
+      SmartDashboard.putBoolean("teamset", false);
+    }
+    return team;
+  }
+
+  /******************************************************************
+   * GetColor
+   *******************************************************************/
+  public String getcolor() {
+    String color = "";
+    Color detectedColor = m_colorSensor.getColor();
+    double R = detectedColor.red;
+    double G = detectedColor.green;
+    double B = detectedColor.blue;
+
+    if ((Math.abs(0.15 - R) < 0.1) && (Math.abs(0.4 - G) < 0.1) && (Math.abs(0.44 - B) < 0.1)) {
+      color = "blue";
+    } else if ((Math.abs(0.53 - R) < 0.2) && (Math.abs(0.34 - G) < 0.2) && (Math.abs(0.118 - B) < 0.2)) {
+      color = "red";
+    } else if ((Math.abs(0.25 - R) < 0.1) && (Math.abs(0.49 - G) < 0.1) && (Math.abs(0.26 - B) < 0.1)) {
+      color = "empty";
+    } else {
+      color = "empty";
+    }
+    return color;
+  }
+
+  /******************************************************************
+   * Ball_Stack
+   *******************************************************************/
+  public String ball_1 = " ";
+  public String ball_2 = " ";
+
+  public void Ball_Stack() {
+    if (ball_1 == "empty") {
+      ball_1 = getcolor();
+    } else if (!(ball_1 == getcolor())) {
+      ball_2 = getcolor();
+    }
+    if (m_switch_tunnel.get()) {
+      ball_1 = ball_2;
+    }
+  }
+
+  /******************************************************************
    * If Team is red but collecct a blue ball , return 20
    *******************************************************************/
   public double color_select(String team, String color) {
@@ -191,29 +246,6 @@ public class ShooterSubsystem extends SubsystemBase {
     }
     return color_spin;
   }
-
-  /******************************************************************
-   * GetColor
-   *******************************************************************/
-  public String getcolor() {
-      String co = "";
-      Color detectedColor = m_colorSensor.getColor();
-      double R = detectedColor.red;
-      double G = detectedColor.green;
-      double B = detectedColor.blue;
-
-      if ((Math.abs(0.15-R)<0.1)&&(Math.abs(0.4-G)<0.1)&&(Math.abs(0.44-B)<0.1)){
-        co = "blue";
-      }else if ((Math.abs(0.53-R)<0.2)&&(Math.abs(0.34-G)<0.2)&&(Math.abs(0.118-B)<0.2)){
-        co = "red";
-      }else if ((Math.abs(0.25-R)<0.1)&&(Math.abs(0.49-G)<0.1)&&(Math.abs(0.26-B)<0.1)){
-        co = "empty";
-      }else{
-        co = "empty";
-      }
-      return co;
-    }
-  
 
   /******************************************************************
    * PHOTONVISION & SHOOTER ROTATE
@@ -487,19 +519,15 @@ public class ShooterSubsystem extends SubsystemBase {
     double setvelocity = 0;
     if ((targetvelocity - actualvelocity) >= 1000) {
       setvelocity += 75;
-    } 
-    else if ((targetvelocity - actualvelocity) <= -1000) {
+    } else if ((targetvelocity - actualvelocity) <= -1000) {
       setvelocity -= 75;
-    } 
-    else if (targetvelocity == 0) { // if targetvelocity is 0 & speed<600 ,keep the speed
+    } else if (targetvelocity == 0) { // if targetvelocity is 0 & speed<600 ,keep the speed
       if (Math.abs(0 - actualvelocity) < 600) {
         setvelocity = actualvelocity;
-      } 
-      else {
+      } else {
         setvelocity = 0; // ? why the actualvelocity>600 and targetvelocity=0,setvelocity=0
       }
-    } 
-    else {
+    } else {
       setvelocity = targetvelocity;
     }
     SmartDashboard.putNumber("TargetShooterSpeed", setvelocity);
@@ -528,7 +556,7 @@ public class ShooterSubsystem extends SubsystemBase {
    * 
    ******************************************************/
   public void auto_shoot() {
-    double spin_input=0;
+    double spin_input = 0;
     var result = m_camera.getLatestResult();
     if (result.hasTargets()) {
       double cam_pitch_degree = result.getBestTarget().getPitch();
@@ -536,9 +564,8 @@ public class ShooterSubsystem extends SubsystemBase {
       double distance = get_distance_to_Target(cam_pitch_degree);
       double tarpitch = calculate_degree(distance);
       m_elevation.set(m_PitchPidController.calculate(degree_2_encoder(tarpitch), m_elevate_encoder.getPosition()));
-      launcher_set( calculate_velocity(distance) / ShooterConstant.flywheel_up10ms_mps);
-    } 
-    else {
+      launcher_set(calculate_velocity(distance) / ShooterConstant.flywheel_up10ms_mps);
+    } else {
       spin_input = -0.2;
     }
     m_rotate.set(spin_input);
@@ -548,18 +575,69 @@ public class ShooterSubsystem extends SubsystemBase {
    * 
    * 
    ******************************************************/
-  public Boolean auto_detect(double targetVelocity_UnitsPer100ms){
+  public Boolean auto_detect(double targetVelocity_UnitsPer100ms) {
     Boolean autoshoot = false;
     var result = m_camera.getLatestResult();
     double cam_pitch_degree = result.getBestTarget().getPitch();
-    double distance =get_distance_to_Target(cam_pitch_degree);
-    if(Math.abs(degree_2_encoder( calculate_degree(distance))-m_elevate_encoder.getPosition())<3){
+    double distance = get_distance_to_Target(cam_pitch_degree);
+    if (Math.abs(degree_2_encoder(calculate_degree(distance)) - m_elevate_encoder.getPosition()) < 3) {
 
-      if(-targetVelocity_UnitsPer100ms >= -m_shooter_left_falcon.getSelectedSensorVelocity()){
+      if (-targetVelocity_UnitsPer100ms >= -m_shooter_left_falcon.getSelectedSensorVelocity()) {
         autoshoot = true;
       }
     }
 
     return autoshoot;
   }
+/************************************************************************** 
+  public void AUTOSHOOT() {
+
+    var result = m_camera.getLatestResult();
+    double cam_pitch_degree = 0;
+    String team;
+
+    if (result.hasTargets()) {
+      double error_spin_get = result.getBestTarget().getYaw();
+      cam_pitch_degree = result.getBestTarget().getPitch();
+    }
+
+    double distance = get_distance_to_Target(cam_pitch_degree);
+    double tarpitch = calculate_degree(distance);
+
+    if (Math.abs(spin_correction(distance,
+        get_x_speed(spin_encoder_2_deg(m_rotate_encoder.getPosition()), m_driver.get_drive_speed()),
+        calculate_velocity_move(calculate_velocity(distance), tarpitch,
+            -get_y_speed(spin_encoder_2_deg(m_rotate_encoder.getPosition()), m_driver.get_drive_speed())))
+        + color_select(team, ball_1)) < 30) {
+     double  error_spin = error_spin_get
+          + -spin_correction(distance,
+              get_x_speed(spinenctodeg(encoder_spin.getPosition()), m_driver.get_drive_speed()),
+              cal_velo_move(cal_velo(distance), tarpitch,
+                  -get_y_speed(spinenctodeg(encoder_spin.getPosition()), m_driver.get_drive_speed())))
+          + color_select(team, ball_1);
+    } else {
+      error_spin = error_spin_get + color_select(team, ball_1);
+    }
+
+    // motor_spin.set(spin_check(spin_input, encoder_spin.getPosition()));
+
+    Integral_spin = (Integral_spin + error_spin);
+
+    spin_input = (error_spin * kp_spin) + (ki_spin * Integral);
+    SmartDashboard.putNumber("apenc", spin_check(spin_input, encoder_spin.getPosition()));
+
+    distance = get_distance_to_Target(cam_pitch_degree);
+
+    tarpitch = cal_degree(distance, target_height_m, camera_height_m);
+
+      m_elevation.set(setang(0.01, 0.000015, 0, degree_2_encoder(tarpitch) - m_elevate_encoder.getPosition()));
+
+    double vertedcon_velo = calculate_velocity_move(calculate_velocity(distance), tarpitch,
+        -get_y_speed(spin_encoder_2_deg(m_rotate_encoder.getPosition()), m_driver.get_drive_speed())) * 100 / Math.PI / 10.16 / 1.5 / 10
+        * 2048;
+    launcher_set(vertedcon_velo);
+
+  }
+  //*************************************************************************************************************/
+
 }

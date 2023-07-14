@@ -1,7 +1,6 @@
 
 package frc.robot;
 
-import javax.swing.text.html.parser.DTD;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 
@@ -69,7 +68,7 @@ public final class Constants {
 
         //* motor_pitch.set(setang(0.01, 0.000015, 0,degtoenc(tarpitch)-encoder_pitch.getPosition())); 
         public final static Gains kGains_Pitch = new Gains(0.01, 0.000015, 0, 0, 0, 0);
-        public final static Gains kGains_Spin = new Gains(0.017, 0.000, 0, 0, 0, 0);
+        public final static Gains kGains_Spin = new Gains(0.02, 0.000, 0, 0, 0, 0);   //kp=0.017
 
 
     }
@@ -105,6 +104,8 @@ public final class Constants {
         public static final int pitch_digital = 1;
         public static final int shootExit_digital = 0;
         public static final int colorSensor_IIC = 0x52;
+        public static final int Addressable_LED=0;
+        public static final int Addressable_LED_Number=100;
     }
 
     public static final class PhotonVisionConstant {
