@@ -28,9 +28,10 @@ public class DriveSubsystem extends SubsystemBase {
   RelativeEncoder m_rightEncoder = m_right_front.getEncoder();
 
   /********** Auto Turn With PID ******************/
-  PIDController m_DriverPidController = new PIDController(DriverConstant.kGains_GyroTurn.kP,DriverConstant.kGains_GyroTurn.kI, DriverConstant.kGains_GyroTurn.kD);
- 
-  /*****************GYRO**************************/
+  PIDController m_DriverPidController = new PIDController(DriverConstant.kGains_GyroTurn.kP,
+      DriverConstant.kGains_GyroTurn.kI, DriverConstant.kGains_GyroTurn.kD);
+
+  /***************** GYRO **************************/
   Pigeon2 m_pigeon2 = new Pigeon2(DriverConstant.pigeno_ID, "rio");
 
   /******************************************************************
@@ -41,7 +42,7 @@ public class DriveSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("Driver_LeftSpeed", m_left_front.getEncoder().getVelocity());
     SmartDashboard.putNumber("Driver_RightSpeed", m_right_front.getEncoder().getVelocity());
     SmartDashboard.putNumber("YAW", m_pigeon2.getYaw());
-    
+
   }
 
   /******************************************************************
@@ -57,6 +58,8 @@ public class DriveSubsystem extends SubsystemBase {
 
     m_left_back.follow(m_left_front);
     m_right_back.follow(m_right_front);
+
+    // m_rightEncoder.setDistancePerPulse(DriverConstant.kEncoderDistancePerPulse);
 
     m_leftEncoder.setPosition(0);
     m_rightEncoder.setPosition(0);
@@ -79,41 +82,70 @@ public class DriveSubsystem extends SubsystemBase {
     m_right_front.set(rightSpeed);
   }
 
+  public void resetEncoders() {
+    m_leftEncoder.setPosition(0);
+    m_rightEncoder.setPosition(0);
+  }
+
+  public void resetGyro() {
+    m_pigeon2.setYaw(0);
+  }
+
   /***********************************************
    * Turn RPM To Meter per seconds
    ************************************************/
-  public double get_drive_speed(){
-    double speedL =  m_leftEncoder.getVelocity()* DriverConstant.Rpm2Mps;
-    double speedR = m_rightEncoder.getVelocity()* DriverConstant.Rpm2Mps;
-    double speed = (speedL+speedR)/2;
+  public double get_drive_speed() {
+    double speedL = m_leftEncoder.getVelocity() * DriverConstant.Rpm2Mps;
+    double speedR = m_rightEncoder.getVelocity() * DriverConstant.Rpm2Mps;
+    double speed = (speedL + speedR) / 2;
     return speed;
+  }
+
+  public double getGyroYaw() {
+    return m_pigeon2.getYaw();
+  }
+
+  /***********************************************
+   * Turn RPM To Meter per seconds
+   ************************************************/
+  public double getAverageEncoderDistance() {
+    return (m_leftEncoder.getPosition() + m_rightEncoder.getPosition()) / 2.0;
   }
 
   /**************************************************
    * contral Car go straight
-   * <p> target_meter_left: TargetPosition of left Motor
-   * <p> target_meter_right: TargetPosition of right Motor
-   * <p> Example: go_straight(1.2, drive_current_drivestraight);
-   * ? i dont know waht is 21.65 , mabey is Push Car go one meter and see what Enocder.getposition() changed.
-   * <p> that my calculate result is 22.428
+   * <p>
+   * target_meter_left: TargetPosition of left Motor
+   * <p>
+   * target_meter_right: TargetPosition of right Motor
+   * <p>
+   * Example: go_straight(1.2, drive_current_drivestraight);
+   * ? i dont know waht is 21.65 , mabey is Push Car go one meter and see what
+   * Enocder.getposition() changed.
+   * <p>
+   * that my calculate result is 22.428
    *************************************************/
-  public void AutoDrivesRun(double target_meter_left,double target_meter_right) {
-    
-    double current_encoder_left  = m_leftEncoder. getPosition();    //Unit:1 pre rotate circle
-    double current_encoder_right  = m_rightEncoder. getPosition();
+  public void AutoDrivesRun(double target_meter_left, double target_meter_right) {
 
-    double out_left = ((target_meter_left * 21.65) - current_encoder_left) * DriverConstant.DriverRun_kp;
-    double out_right = ((target_meter_right * 21.65) - current_encoder_right) * DriverConstant.DriverRun_kp;
+    double current_encoder_left = m_leftEncoder.getPosition(); // Unit:1 pre rotate circle
+    double current_encoder_right = m_rightEncoder.getPosition();
+
+    double out_left = ((target_meter_left * DriverConstant.Rpm2Mps) - current_encoder_left)
+        * DriverConstant.DriverRun_kp;
+    double out_right = ((target_meter_right * DriverConstant.Rpm2Mps) - current_encoder_right)
+        * DriverConstant.DriverRun_kp;
 
     m_driver.tankDrive(out_left, out_right);
   }
+
   /**************************************************
    * Turn with Gyro & PIDcontraller
-   * <p> target 
+   * <p>
+   * target
    *************************************************/
-  public void auto_turn( double target_angle){
-    double auto_turn_output= m_DriverPidController.calculate(m_pigeon2.getYaw(), target_angle);
-    m_driver.tankDrive(auto_turn_output , -auto_turn_output);
+  public void auto_turn(double target_angle) {
+    double auto_turn_output = m_DriverPidController.calculate(m_pigeon2.getYaw(), target_angle);
+    m_driver.tankDrive(auto_turn_output, -auto_turn_output);
   }
 
 }
