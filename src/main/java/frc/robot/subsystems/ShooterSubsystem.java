@@ -247,21 +247,6 @@ public class ShooterSubsystem extends SubsystemBase {
     return color_spin;
   }
 
-  /******************************************************************
-   * PHOTONVISION & SHOOTER ROTATE
-   *******************************************************************/
-  public void rotateVersion() {
-
-    var result = m_camera.getLatestResult();
-    if (result.hasTargets()) {
-      PhotonTrackedTarget target = result.getBestTarget();
-
-      SmartDashboard.putNumber("TargetYaw", target.getYaw());
-      SmartDashboard.putNumber("TargetPitch", target.getPitch());
-
-      m_rotate.set(-m_rotateVersionpid.calculate(target.getYaw(), 0));
-    }
-  }
 
   /******************************************************************
    * ROTATE
@@ -420,7 +405,7 @@ public class ShooterSubsystem extends SubsystemBase {
    * 0,degtoenc(tarpitch)-encoder_pitch.getPosition()));
    * }
    ******************************************************/
-  public double calculate_degree(double distance) {
+  private double calculate_degree(double distance) {
     double x1 = distance;
     double y1 = PhotonVisionConstant.Camera_height - PhotonVisionConstant.Target_height;
     double x2 = distance - 0.2; // the 0.2 is the distance between Target and parabola top
@@ -438,7 +423,7 @@ public class ShooterSubsystem extends SubsystemBase {
   /***************************************************
    * calculate velocity of shooter
    ******************************************************/
-  public double calculate_velocity(double distance) {
+  private double calculate_velocity(double distance) {
     double ang = 0;
     double x1 = distance;
     double y1 = PhotonVisionConstant.Camera_height - PhotonVisionConstant.Target_height;
@@ -476,7 +461,7 @@ public class ShooterSubsystem extends SubsystemBase {
    * ,get_drive_speed())
    * ) *100/Math.PI/10.16/1.5/10*2048;
    ******************************************************/
-  public double calculate_velocity_move(double velocity_static, double angle_static, double yc_speed) {
+  private double calculate_velocity_move(double velocity_static, double angle_static, double yc_speed) {
     double yball_speed = (Math.cos(angle_static * Math.PI / 180) * velocity_static) + yc_speed;
     double velocity = yball_speed / Math.cos(angle_static * Math.PI / 180);
     return velocity;
@@ -491,7 +476,7 @@ public class ShooterSubsystem extends SubsystemBase {
    * m_driver.get_drive_speed()))
    * )
    ******************************************************/
-  public double spin_correction(double distance_m, double xspeed, double new_velo) {
+  private double spin_correction(double distance_m, double xspeed, double new_velo) {
     double x1 = distance_m;
     double y1 = PhotonVisionConstant.Camera_height - PhotonVisionConstant.Target_height;
     double x2 = distance_m - 0.2;
@@ -515,7 +500,7 @@ public class ShooterSubsystem extends SubsystemBase {
    * -falcon500_delay(-targetVelocity_UnitsPer100ms,
    * -_talon.getSelectedSensorVelocity()))
    ******************************************************/
-  public double falcon500_delay(double targetvelocity, double actualvelocity) {
+  private double falcon500_delay(double targetvelocity, double actualvelocity) {
     double setvelocity = 0;
     if ((targetvelocity - actualvelocity) >= 1000) {
       setvelocity += 75;
@@ -539,7 +524,7 @@ public class ShooterSubsystem extends SubsystemBase {
    * cal_velo(distance)/ShooterConstant.flywheel_up10ms_mps;
    * launcher_set(vertedcon_velo);
    ******************************************************/
-  public void launcher_set(double setvelocity) {
+  private void launcher_set(double setvelocity) {
     // double motorOutput = m_shooter_left_falcon.getMotorOutputPercent();
     double targetVelocity_UnitsPer100ms = -setvelocity;
     if (setvelocity == 0) {
@@ -561,9 +546,11 @@ public class ShooterSubsystem extends SubsystemBase {
     if (result.hasTargets()) {
       double cam_pitch_degree = result.getBestTarget().getPitch();
       spin_input = m_SpinPidController.calculate(result.getBestTarget().getYaw(), 0);
+
       double distance = get_distance_to_Target(cam_pitch_degree);
       double tarpitch = calculate_degree(distance);
       m_elevation.set(m_PitchPidController.calculate(degree_2_encoder(tarpitch), m_elevate_encoder.getPosition()));
+     
       launcher_set(calculate_velocity(distance) / ShooterConstant.flywheel_up10ms_mps);
     } else {
       spin_input = -0.2;

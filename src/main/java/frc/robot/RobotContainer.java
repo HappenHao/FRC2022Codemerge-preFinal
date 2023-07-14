@@ -38,6 +38,7 @@ public class RobotContainer {
   private final JoystickButton UpButtonY = new JoystickButton(m_Xbox, 4);
   private final JoystickButton DownButtonA = new JoystickButton(m_Xbox, 1);
   private final JoystickButton launchButton = new JoystickButton(m_Joystick, 1);
+  private final JoystickButton AimOnButton = new JoystickButton(m_Joystick, 2);
 
   private POVButton m_rotate_colock_button = new POVButton(m_Xbox, 90);
   private POVButton m_rotate_uncolock_button = new POVButton(m_Xbox, 270);
@@ -100,7 +101,8 @@ public class RobotContainer {
     UpButtonY   .whenPressed(new InstantCommand(m_intake::InakeUp, m_intake));
     DownButtonA .whenPressed(new InstantCommand(m_intake::intakeDown, m_intake));
     launchButton.whenPressed(new InstantCommand(m_shooter::launch, m_shooter) )
-                .whenReleased(new InstantCommand(m_shooter::stopLaunch));
+                .whenReleased(new InstantCommand(m_shooter::stopLaunch,m_shooter));
+    // AimOnButton.whenPressed(new InstantCommand(m_shooter::auto_shoot,m_shooter));
     // new JoystickButton(m_Joystick,1).whenPressed(new InstantCommand(m_shooter::launch, m_shooter) )
     //                                 .whenReleased(new InstantCommand(m_shooter::stopLaunch));
 

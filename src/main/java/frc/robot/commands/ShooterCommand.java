@@ -31,14 +31,12 @@ public class ShooterCommand extends CommandBase {
     
    if (m_autoTargetButtonFounction.get())
    {
-      m_shooter.rotateVersion();
+      m_shooter.auto_shoot();
    }
    else{
      
-    double realTimeShootPower =(-m_ShooterPowerFounction.get() + 1 )/2;
-    // m_shooter.setPower(realTimeShootPower);
+    double realTimeShootPower =(-m_ShooterPowerFounction.get() + 1 )/2;//get Joystick axis value
     double targetVelocity_RPM = realTimeShootPower * 5000.0;
-		/* 5000 RPM in either direction */
     if(targetVelocity_RPM>500){
     m_shooter.setVelocity_RPM(targetVelocity_RPM);
     }
